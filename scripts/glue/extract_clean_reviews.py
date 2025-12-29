@@ -29,15 +29,44 @@ body = obj["Body"].read()
 
 tar = tarfile.open(fileobj=gzip.GzipFile(fileobj=io.BytesIO(body)))
 
-def extract_tar(member_name):
+extract_path = f"s3://{BUCKET}/{PROJECT}/extracted"
+train_s3 = f"{extract_path}/train.csv"
+test_s3  = f"{extract_path}/test.csv"
+
+
+# def extract_tar(member_name):
+    
+#     tmp_path = f"/tmp/{member_name.split('/')[-1]}"
+#     with open(tmp_path, "wb") as out:
+#         out.write(data)
+#     df = spark.read.csv(tmp_path, schema=schema, header=False, multiLine=True, escape='"', quote='"')
+#     return df
+
+def extract_member_to_s3_and_read(member_name, s3_uri_out: str):
+    # 1) extract bytes from tar
     member = tar.getmember(member_name)
     f = tar.extractfile(member)
     data = f.read()
-    tmp_path = f"/tmp/{member_name.split('/')[-1]}"
-    with open(tmp_path, "wb") as out:
-        out.write(data)
-    df = spark.read.csv(tmp_path, schema=schema, header=False, multiLine=True, escape='"', quote='"')
+
+    # 2) write extracted CSV to S3 staging
+   
+    assert s3_uri_out.startswith("s3://")
+    _, _, rest = s3_uri_out.partition("s3://")
+    out_bucket, _, out_key = rest.partition("/")
+
+    s3.put_object(Bucket=out_bucket, Key=out_key, Body=data)
+
+    # 3) read from S3 (distributed-safe)
+    df = spark.read.csv(
+        s3_uri_out,
+        schema=schema,
+        header=False,
+        multiLine=True,
+        escape='"',
+        quote='"'
+    )
     return df
+
 
 def processDF(dataframe):
     data = dataframe.withColumn("title", when(col("title").isNull(), "no title").otherwise(trim(col("title")))) \
@@ -51,23 +80,31 @@ def processDF(dataframe):
 
     return data
 
-train_df = extract_tar("amazon_review_full_csv/train.csv") \
+train_df = extract_member_to_s3_and_read("amazon_review_full_csv/train.csv", train_s3) \
     .withColumnRenamed("_c0", "rating") \
     .withColumnRenamed("_c1", "title") \
     .withColumnRenamed("_c2", "review") \
-    .withColumn("label", lit("train"))
+    .withColumn("split", lit("train"))
 
-test_df = extract_tar("amazon_review_full_csv/test.csv") \
+test_df = extract_member_to_s3_and_read("amazon_review_full_csv/test.csv", test_s3) \
     .withColumnRenamed("_c0", "rating") \
     .withColumnRenamed("_c1", "title") \
     .withColumnRenamed("_c2", "review") \
-    .withColumn("label", lit("test"))
+    .withColumn("split", lit("test"))
 
 result_df = train_df.unionByName(test_df)
 
 result_df = processDF(result_df)
 
-out_path = f"s3://{BUCKET}/{PROJECT}/curated/reviews/"
+out_path = f"s3://{BUCKET}/{PROJECT}/processed/reviews/"
+
 result_df.write.mode("overwrite") \
-  .partitionBy("split", "label") \
+  .partitionBy("split", "rating") \
   .parquet(out_path)
+
+# train_df.write.mode("overwrite") \
+#   .csv(extract_path)
+
+# test_df.write.mode("overwrite") \
+#   .csv(extract_path)
+
