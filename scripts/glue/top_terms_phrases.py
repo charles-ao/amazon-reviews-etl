@@ -64,4 +64,4 @@ top_phrases = phr.withColumn("rank", row_number().over(w2)).filter(col("rank") <
                  .withColumn("ingest_dt", lit(INGEST_DT))
 
 top_phrases_path = f"s3://{BUCKET}/{PROJECT}/processed/summary/top_phrases/"
-top_phrases.write.mode("overwrite").partitionBy("sentiment_bucket").parquet(top_phrases_path)
+top_phrases.write.mode("overwrite").partitionBy("bucket").parquet(top_phrases_path)
