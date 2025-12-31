@@ -37,19 +37,22 @@ The dataset includes millions of Amazon reviews and is commonly used for large-s
 
 amazon_reviews_bucket/
 ├── amazon-reviews-etl/
-│ ├── extracted/
-│ │ ├── train.csv
-│ │ └── test.csv
-│ ├── processed/
-│ │ ├── reviews/
-│ │ │ └── split=train|test/label=1..5/
-│ │ └── summary/
-│ │ │ ├── top_terms/
-│ │ │ └── top_phrases/
-│ └──raw/
-│ └── amazon_review_full_csv.tgz
-├── athena-results/
-└── scripts/
+│   ├── extracted/
+│   │   ├── train.csv
+│   │   └── test.csv
+│   ├── processed/
+│   │   ├── reviews/
+│   │   │   └── split=train|test/label=1..5/
+│   │   └── summary/
+│   │       ├── top_terms/
+│   │       └── top_phrases/
+│   └── raw/
+│       └── amazon_review_full_csv.tgz
+├── scripts/
+│   └── glue/
+└── athena-results/
+
+
 
 ---
 
