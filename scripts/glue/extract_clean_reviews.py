@@ -34,14 +34,6 @@ train_s3 = f"{extract_path}/train.csv"
 test_s3  = f"{extract_path}/test.csv"
 
 
-# def extract_tar(member_name):
-    
-#     tmp_path = f"/tmp/{member_name.split('/')[-1]}"
-#     with open(tmp_path, "wb") as out:
-#         out.write(data)
-#     df = spark.read.csv(tmp_path, schema=schema, header=False, multiLine=True, escape='"', quote='"')
-#     return df
-
 def extract_member_to_s3_and_read(member_name, s3_uri_out: str):
     # 1) extract bytes from tar
     member = tar.getmember(member_name)
@@ -101,10 +93,4 @@ out_path = f"s3://{BUCKET}/{PROJECT}/processed/reviews/"
 result_df.write.mode("overwrite") \
   .partitionBy("split", "rating") \
   .parquet(out_path)
-
-# train_df.write.mode("overwrite") \
-#   .csv(extract_path)
-
-# test_df.write.mode("overwrite") \
-#   .csv(extract_path)
 

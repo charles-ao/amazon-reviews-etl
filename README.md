@@ -29,3 +29,59 @@ The dataset includes millions of Amazon reviews and is commonly used for large-s
 
 ![alt text](architecture.png)
 
+---
+
+## Data Lake Design
+
+### S3 Layout
+
+amazon_reviews_bucket/
+├── amazon-reviews-etl/
+│ ├── extracted/
+│ │ ├── train.csv
+│ │ └── test.csv
+│ ├── processed/
+│ │ ├── reviews/
+│ │ │ └── split=train|test/label=1..5/
+│ │ └── summary/
+│ │ │ ├── top_terms/
+│ │ │ └── top_phrases/
+│ └──raw/
+│ └── amazon_review_full_csv.tgz
+├── athena-results/
+└── scripts/
+
+---
+
+## ETL Pipeline
+
+### Step 1 — Ingestion
+- Copy raw `.tgz` file from public S3 to project S3 bucket
+- Preserve original file for lineage and reprocessing
+
+### Step 2 — Extraction & Cleaning (AWS Glue / PySpark)
+- Extract `train.csv` and `test.csv` from .tgz
+- Store extracted CSVs in Project S3
+- Parse CSV safely (quoted text, commas) as Spark dataframe
+- Remove invalid rows
+- Derive:
+  - Sentiment classifiers from 'ratings'
+  - Review length: Character length of reviews
+  - review IDs
+  - ingestion date
+- Union test and train datasets
+- Store clean review data in S3 as parquet
+
+### Step 3 — NLP Enrichment
+- Tokenize review text
+- Compute:
+  - Top terms per sentiment classifier
+  - Top phrases per sentiment classifier
+- Store aggregated NLP outputs as Parquet
+
+### Step 4 — Catalog & Query
+- Register processed datasets in Glue Data Catalog
+- Query data using Amazon Athena
+- Store query outputs in s3
+
+---
