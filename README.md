@@ -27,3 +27,5 @@ The dataset includes millions of Amazon reviews and is commonly used for large-s
 
 ## Architecture
 
+![alt text](architecture.png)
+
