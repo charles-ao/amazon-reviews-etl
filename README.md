@@ -34,24 +34,24 @@ The dataset includes millions of Amazon reviews and is commonly used for large-s
 ## Data Lake Design
 
 ### S3 Layout
-
-amazon_reviews_bucket/
-├── amazon-reviews-etl/
-│   ├── extracted/
-│   │   ├── train.csv
-│   │   └── test.csv
-│   ├── processed/
-│   │   ├── reviews/
-│   │   │   └── split=train|test/label=1..5/
-│   │   └── summary/
-│   │       ├── top_terms/
-│   │       └── top_phrases/
-│   └── raw/
-│       └── amazon_review_full_csv.tgz
-├── scripts/
-│   └── glue/
-└── athena-results/
-
+    ```bash
+    amazon_reviews_bucket/
+    ├── amazon-reviews-etl/
+    │   ├── extracted/
+    │   │   ├── train.csv
+    │   │   └── test.csv
+    │   ├── processed/
+    │   │   ├── reviews/
+    │   │   │   └── split=train|test/label=1..5/
+    │   │   └── summary/
+    │   │       ├── top_terms/
+    │   │       └── top_phrases/
+    │   └── raw/
+    │       └── amazon_review_full_csv.tgz
+    ├── scripts/
+    │   └── glue/
+    └── athena-results/
+    ```
 
 
 ---
